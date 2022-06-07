@@ -1,0 +1,2131 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sites_cldocker_name": {
+            "defaultValue": "cldocker",
+            "type": "String"
+        },
+        "serverfarms_ASP_cloudioDev_a0c1_name": {
+            "defaultValue": "ASP-cloudioDev-a0c1",
+            "type": "String"
+        },
+        "containerGroups_kafka_name": {
+            "defaultValue": "kafka",
+            "type": "String"
+        },
+        "containerGroups_mysql_name": {
+            "defaultValue": "mysql",
+            "type": "String"
+        },
+        "virtualNetworks_cloudioDev_vnet_name": {
+            "defaultValue": "cloudioDev-vnet",
+            "type": "String"
+        },
+        "containerGroups_zookeeper_name": {
+            "defaultValue": "zookeeper",
+            "type": "String"
+        },
+        "containerGroups_redispublic_name": {
+            "defaultValue": "redispublic",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2021-10-01",
+            "name": "[parameters('containerGroups_kafka_name')]",
+            "location": "westus2",
+            "properties": {
+                "sku": "Standard",
+                "containers": [
+                    {
+                        "name": "[parameters('containerGroups_kafka_name')]",
+                        "properties": {
+                            "image": "[concat('bitnami/', parameters('containerGroups_kafka_name'), ':2.7.0')]",
+                            "ports": [
+                                {
+                                    "protocol": "TCP",
+                                    "port": 9092
+                                }
+                            ],
+                            "environmentVariables": [
+                                {
+                                    "name": "KAFKA_CFG_ZOOKEEPER_CONNECT",
+                                    "value": "zookeeper.westus2.azurecontainer.io:2181"
+                                },
+                                {
+                                    "name": "KAFKA_CFG_ADVERTISED_LISTENERS",
+                                    "value": "[concat('PLAINTEXT://', parameters('containerGroups_kafka_name'), '.westus2.azurecontainer.io:9092')]"
+                                },
+                                {
+                                    "name": "ALLOW_PLAINTEXT_LISTENER",
+                                    "value": "yes"
+                                }
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "memoryInGB": 1.5,
+                                    "cpu": 1
+                                }
+                            }
+                        }
+                    }
+                ],
+                "initContainers": [],
+                "restartPolicy": "OnFailure",
+                "ipAddress": {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 9092
+                        }
+                    ],
+                    "type": "Public",
+                    "dnsNameLabel": "[parameters('containerGroups_kafka_name')]"
+                },
+                "osType": "Linux"
+            }
+        },
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2021-10-01",
+            "name": "[parameters('containerGroups_mysql_name')]",
+            "location": "westus2",
+            "properties": {
+                "sku": "Standard",
+                "containers": [
+                    {
+                        "name": "[parameters('containerGroups_mysql_name')]",
+                        "properties": {
+                            "image": "[concat('cloudiopl4.azurecr.io/clpl4', parameters('containerGroups_mysql_name'), ':latest')]",
+                            "ports": [
+                                {
+                                    "protocol": "TCP",
+                                    "port": 3306
+                                }
+                            ],
+                            "environmentVariables": [],
+                            "resources": {
+                                "requests": {
+                                    "memoryInGB": 1.5,
+                                    "cpu": 1
+                                }
+                            }
+                        }
+                    }
+                ],
+                "initContainers": [],
+                "imageRegistryCredentials": [
+                    {
+                        "server": "cloudiopl4.azurecr.io",
+                        "username": "cloudiopl4"
+                    }
+                ],
+                "restartPolicy": "OnFailure",
+                "ipAddress": {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 3306
+                        }
+                    ],
+                    "type": "Public"
+                },
+                "osType": "Linux"
+            }
+        },
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2021-10-01",
+            "name": "[parameters('containerGroups_redispublic_name')]",
+            "location": "westus2",
+            "properties": {
+                "sku": "Standard",
+                "containers": [
+                    {
+                        "name": "[parameters('containerGroups_redispublic_name')]",
+                        "properties": {
+                            "image": "redis:6",
+                            "ports": [
+                                {
+                                    "protocol": "TCP",
+                                    "port": 6379
+                                }
+                            ],
+                            "environmentVariables": [],
+                            "resources": {
+                                "requests": {
+                                    "memoryInGB": 1.5,
+                                    "cpu": 1
+                                }
+                            }
+                        }
+                    }
+                ],
+                "initContainers": [],
+                "restartPolicy": "OnFailure",
+                "ipAddress": {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 6379
+                        }
+                    ],
+                    "type": "Public",
+                    "dnsNameLabel": "redis"
+                },
+                "osType": "Linux"
+            }
+        },
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2021-10-01",
+            "name": "[parameters('containerGroups_zookeeper_name')]",
+            "location": "westus2",
+            "properties": {
+                "sku": "Standard",
+                "containers": [
+                    {
+                        "name": "[parameters('containerGroups_zookeeper_name')]",
+                        "properties": {
+                            "image": "[concat('bitnami/', parameters('containerGroups_zookeeper_name'), ':3.5.7')]",
+                            "ports": [
+                                {
+                                    "protocol": "TCP",
+                                    "port": 2181
+                                }
+                            ],
+                            "environmentVariables": [
+                                {
+                                    "name": "ALLOW_ANONYMOUS_LOGIN",
+                                    "value": "yes"
+                                },
+                                {
+                                    "name": "ZOO_LOG_LEVEL",
+                                    "value": "WARN"
+                                }
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "memoryInGB": 1.5,
+                                    "cpu": 1
+                                }
+                            }
+                        }
+                    }
+                ],
+                "initContainers": [],
+                "restartPolicy": "OnFailure",
+                "ipAddress": {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 2181
+                        }
+                    ],
+                    "type": "Public",
+                    "dnsNameLabel": "[parameters('containerGroups_zookeeper_name')]"
+                },
+                "osType": "Linux"
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-11-01",
+            "name": "[parameters('virtualNetworks_cloudioDev_vnet_name')]",
+            "location": "westus2",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.0.0.0/24"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "default",
+                        "properties": {
+                            "addressPrefix": "10.0.0.0/24",
+                            "delegations": [
+                                {
+                                    "name": "ACIDelegationService",
+                                    "properties": {
+                                        "serviceName": "Microsoft.ContainerInstance/containerGroups"
+                                    }
+                                }
+                            ],
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2021-03-01",
+            "name": "[parameters('serverfarms_ASP_cloudioDev_a0c1_name')]",
+            "location": "West US 2",
+            "sku": {
+                "name": "P1v2",
+                "tier": "PremiumV2",
+                "size": "P1v2",
+                "family": "Pv2",
+                "capacity": 1
+            },
+            "kind": "linux",
+            "properties": {
+                "perSiteScaling": false,
+                "elasticScaleEnabled": false,
+                "maximumElasticWorkerCount": 1,
+                "isSpot": false,
+                "reserved": true,
+                "isXenon": false,
+                "hyperV": false,
+                "targetWorkerCount": 0,
+                "targetWorkerSizeId": 0,
+                "zoneRedundant": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2020-11-01",
+            "name": "[concat(parameters('virtualNetworks_cloudioDev_vnet_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_cloudioDev_vnet_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "10.0.0.0/24",
+                "delegations": [
+                    {
+                        "name": "ACIDelegationService",
+                        "properties": {
+                            "serviceName": "Microsoft.ContainerInstance/containerGroups"
+                        }
+                    }
+                ],
+                "privateEndpointNetworkPolicies": "Enabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2021-03-01",
+            "name": "[parameters('sites_cldocker_name')]",
+            "location": "West US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_cloudioDev_a0c1_name'))]"
+            ],
+            "kind": "app,linux,container",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "[concat(parameters('sites_cldocker_name'), '.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "[concat(parameters('sites_cldocker_name'), '.scm.azurewebsites.net')]",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_cloudioDev_a0c1_name'))]",
+                "reserved": true,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {
+                    "numberOfWorkers": 1,
+                    "linuxFxVersion": "DOCKER|cloudiopl4.azurecr.io/cloudio:v8",
+                    "acrUseManagedIdentityCreds": false,
+                    "alwaysOn": true,
+                    "http20Enabled": false,
+                    "functionAppScaleLimit": 0,
+                    "minimumElasticInstanceCount": 0
+                },
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": false,
+                "clientCertEnabled": false,
+                "clientCertMode": "Required",
+                "hostNamesDisabled": false,
+                "customDomainVerificationId": "D3106FB392BC0FE4FF25B742B17FF32FCF7638A0C0950C057A14FE58540BA9E5",
+                "containerSize": 0,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": false,
+                "redundancyMode": "None",
+                "storageAccountRequired": false,
+                "keyVaultReferenceIdentity": "SystemAssigned"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
+            "apiVersion": "2021-03-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/ftp')]",
+            "location": "West US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ],
+            "properties": {
+                "allow": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
+            "apiVersion": "2021-03-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/scm')]",
+            "location": "West US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ],
+            "properties": {
+                "allow": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2021-03-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/web')]",
+            "location": "West US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ],
+            "properties": {
+                "numberOfWorkers": 1,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php",
+                    "hostingstart.html"
+                ],
+                "netFrameworkVersion": "v4.0",
+                "linuxFxVersion": "DOCKER|cloudiopl4.azurecr.io/cloudio:v8",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "httpLoggingEnabled": false,
+                "acrUseManagedIdentityCreds": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$cldocker",
+                "scmType": "None",
+                "use32BitWorkerProcess": true,
+                "webSocketsEnabled": false,
+                "alwaysOn": true,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": true
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "vnetRouteAllEnabled": false,
+                "vnetPrivatePortsCount": 0,
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": false,
+                "minTlsVersion": "1.2",
+                "scmMinTlsVersion": "1.0",
+                "ftpsState": "AllAllowed",
+                "preWarmedInstanceCount": 0,
+                "functionAppScaleLimit": 0,
+                "functionsRuntimeScaleMonitoringEnabled": false,
+                "minimumElasticInstanceCount": 0,
+                "azureStorageAccounts": {}
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2021-03-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/', parameters('sites_cldocker_name'), '.azurewebsites.net')]",
+            "location": "West US 2",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ],
+            "properties": {
+                "siteName": "cldocker",
+                "hostNameType": "Verified"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-08T10_50_08_9600980')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-08T16_50_09_0056524')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-09T01_50_09_1871405')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-09T10_50_09_3318957')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-09T16_50_09_4548353')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-10T01_50_09_6459856')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-10T10_50_09_8397236')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-10T16_50_09_9526777')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-11T01_50_10_5492173')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-11T10_50_10_7265348')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-11T16_50_10_8612489')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-12T01_50_10_9937727')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-12T10_50_11_1583436')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-12T16_50_11_2745923')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-13T01_50_11_4383693')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-13T10_50_11_6029877')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-13T16_50_11_7213209')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-14T01_50_11_9023404')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-14T10_50_12_0954412')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-14T16_50_12_1899021')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-15T01_50_12_3922001')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-15T10_50_12_5653760')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-15T16_50_12_6931798')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-16T01_50_12_8828311')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-16T10_50_13_0622758')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-16T16_50_13_1811969')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-17T01_50_13_3770932')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-17T10_50_13_5664887')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-17T16_50_13_6635859')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-18T01_50_13_8173871')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-18T10_50_13_9967086')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-18T16_50_14_1170122')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-19T01_50_14_2864749')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-19T10_50_14_4906966')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-19T16_50_14_6158553')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-20T01_50_14_8233598')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-20T10_50_14_9961755')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-20T16_50_15_1331385')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-21T01_50_15_2509803')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-21T10_50_15_4103463')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-21T16_50_15_5182529')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-22T01_50_15_6879829')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-22T10_50_15_8463654')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-22T16_50_15_9503300')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-23T01_50_16_1890411')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-23T10_50_16_3205959')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-23T16_50_16_4310508')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-23T22_50_16_5536345')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-24T01_50_16_6588472')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-24T10_50_16_8024967')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-24T13_50_16_8664085')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-24T16_50_16_9501249')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-24T19_50_17_0051162')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-24T22_50_17_0552218')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-25T01_50_17_1069088')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-25T10_50_17_3037927')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-25T13_50_17_3517427')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-25T16_50_17_4049512')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-25T19_50_17_4548584')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-25T22_50_17_5077616')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-26T01_50_17_5636601')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-26T10_50_17_7249275')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-26T13_50_17_8052172')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-26T16_50_17_8400620')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-26T19_50_17_8918046')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-26T22_50_17_9504354')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-27T01_50_17_9859186')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-27T10_50_18_1369014')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-27T13_50_18_2206279')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-27T16_50_18_2975066')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-27T19_50_18_3266407')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-27T22_50_18_3845952')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-28T01_50_18_4472538')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-28T10_50_18_6428620')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-28T13_50_18_7086380')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-28T16_50_18_7325237')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-28T19_50_18_8128616')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-28T22_50_18_8257355')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-29T01_50_18_8876204')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-29T10_50_19_0434953')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-29T13_50_19_1267200')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-29T16_50_19_7990095')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-29T19_50_19_2501814')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-29T22_50_19_3014876')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-30T01_50_19_4242230')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-30T10_50_19_5673550')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-30T13_50_19_6412770')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-30T16_50_19_7194494')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-30T19_50_19_7686941')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-30T22_50_19_8234409')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-31T01_50_19_8992742')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-31T10_50_20_1608969')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-31T13_50_20_2146128')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-31T16_50_20_3041926')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-31T19_50_20_3366063')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-31T22_50_20_4133724')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-01T01_50_20_4689130')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-01T10_50_20_6171984')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-01T13_50_20_6564297')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-01T16_50_20_7173815')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-01T19_50_20_7715508')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-01T22_50_20_8174319')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-02T01_50_20_8705539')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-02T10_50_21_0620426')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-02T13_50_21_1341623')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-02T16_50_21_1876829')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-02T19_50_21_2419308')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-02T22_50_21_2861079')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T01_50_21_3434174')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T06_50_21_4429456')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T07_50_21_4569623')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T08_50_21_4747855')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T09_50_21_4916088')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T10_50_21_5212487')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T11_50_21_5439613')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T12_50_21_5576108')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T13_50_21_5713559')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T14_50_21_5882510')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T15_50_21_6100421')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T16_50_21_6348984')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T17_50_21_6466394')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T18_50_21_6724746')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T19_50_21_7082740')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T20_50_21_7311254')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T21_50_21_7468559')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T22_50_21_7707390')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T23_50_21_7794808')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T00_50_21_8020623')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T01_50_21_8180544')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T02_50_21_8338870')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T03_50_21_8533012')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T04_50_21_8726553')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T05_50_21_8994722')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T06_50_21_9239876')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T07_50_21_9681032')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T08_50_21_9919293')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T09_50_21_9967925')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T10_50_22_0186336')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T11_50_22_0363200')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T12_50_22_0503249')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T13_50_22_0709392')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T14_50_22_1020414')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T15_50_22_0995928')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T16_50_22_1237539')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T17_50_22_1293034')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T18_50_22_1455583')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T19_50_22_1999734')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T20_50_22_1912729')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T21_50_22_2176694')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T22_50_22_2289316')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T23_50_22_2381091')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T00_50_22_2763033')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T01_50_22_2946775')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T02_50_22_3258866')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T03_50_23_3459460')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T04_50_22_3685181')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T05_50_22_3879369')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T06_50_22_4043416')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T07_50_22_4286912')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T08_50_22_4608445')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T09_50_22_4785953')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T10_50_22_5145280')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T11_50_22_5381123')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T12_50_22_5561283')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T13_50_22_5727920')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T14_50_22_5947541')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T15_50_22_6165165')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T16_50_22_6375048')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T17_50_22_6634130')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T18_50_22_6723009')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T19_50_22_6921783')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T20_50_22_7089149')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T21_50_22_7329477')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T22_50_22_7607123')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T23_50_22_7664783')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T00_50_22_7792284')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T01_50_22_8241373')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T02_50_22_8239137')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T03_50_22_8498316')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T04_50_22_8815602')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T05_50_22_9114469')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T06_50_22_9352287')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T07_50_22_9621150')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T08_50_22_9768475')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T09_50_23_0087068')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T10_50_23_0443686')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T11_50_23_0511990')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T12_50_23_0607833')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T13_50_23_0917398')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T14_50_23_1403114')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T15_50_23_1251736')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T16_50_23_1417881')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T17_50_23_1687336')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T18_50_23_1904104')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T19_50_23_2191572')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T20_50_23_2399680')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T21_50_23_2697052')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T22_50_23_2673693')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T23_50_23_2792454')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-07T00_50_23_2987980')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-07T01_50_23_3126401')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-07T02_50_23_3373457')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-07T03_50_23_4080555')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-07T04_50_23_3739297')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-07T05_50_23_3876408')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        },
+        {
+            "type": "Microsoft.Web/sites/snapshots",
+            "apiVersion": "2015-08-01",
+            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-07T06_50_23_4043712')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+            ]
+        }
+    ]
+}
