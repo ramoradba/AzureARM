@@ -2,30 +2,42 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "sites_cldocker_name": {
-            "defaultValue": "cldocker",
+        "cloudio_app_service_name": {
+            "defaultValue": "cloudiodockersrs",
             "type": "String"
         },
-        "serverfarms_ASP_cloudioDev_a0c1_name": {
-            "defaultValue": "ASP-cloudioDev-a0c1",
+        "cloudio_app_service_plan": {
+            "defaultValue": "AppServicePlanSrs",
             "type": "String"
         },
         "containerGroups_kafka_name": {
-            "defaultValue": "kafka",
+            "defaultValue": "kafkasr",
             "type": "String"
         },
+        "containerGroups_kafka_image_name": {
+            "defaultValue": "kafka",
+            "type": "String"
+        },		
         "containerGroups_mysql_name": {
             "defaultValue": "mysql",
             "type": "String"
         },
+        "containerGroups_mysql_image_name": {
+            "defaultValue": "mysql",
+            "type": "String"
+        },		
         "virtualNetworks_cloudioDev_vnet_name": {
-            "defaultValue": "cloudioDev-vnet",
+            "defaultValue": "cloudiosr-vnet",
             "type": "String"
         },
         "containerGroups_zookeeper_name": {
             "defaultValue": "zookeeper",
             "type": "String"
         },
+        "containerGroups_zookeeper_image_name": {
+            "defaultValue": "zookeeper",
+            "type": "String"
+        },		
         "containerGroups_redispublic_name": {
             "defaultValue": "redispublic",
             "type": "String"
@@ -44,7 +56,7 @@
                     {
                         "name": "[parameters('containerGroups_kafka_name')]",
                         "properties": {
-                            "image": "[concat('bitnami/', parameters('containerGroups_kafka_name'), ':2.7.0')]",
+                            "image": "[concat('bitnami/', parameters('containerGroups_kafka_image_name'), ':2.7.0')]",
                             "ports": [
                                 {
                                     "protocol": "TCP",
@@ -121,7 +133,8 @@
                 "imageRegistryCredentials": [
                     {
                         "server": "cloudiopl4.azurecr.io",
-                        "username": "cloudiopl4"
+                        "username": "cloudiopl4",
+						"password": "ovqFtI/8ltnClXDVJR3VEWqzLyp5Gd3j"						
                     }
                 ],
                 "restartPolicy": "OnFailure",
@@ -191,7 +204,7 @@
                     {
                         "name": "[parameters('containerGroups_zookeeper_name')]",
                         "properties": {
-                            "image": "[concat('bitnami/', parameters('containerGroups_zookeeper_name'), ':3.5.7')]",
+                            "image": "[concat('bitnami/', parameters('containerGroups_zookeeper_image_name'), ':3.5.7')]",
                             "ports": [
                                 {
                                     "protocol": "TCP",
@@ -268,7 +281,7 @@
         {
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "2021-03-01",
-            "name": "[parameters('serverfarms_ASP_cloudioDev_a0c1_name')]",
+            "name": "[parameters('cloudio_app_service_plan')]",
             "location": "West US 2",
             "sku": {
                 "name": "P1v2",
@@ -315,27 +328,27 @@
         {
             "type": "Microsoft.Web/sites",
             "apiVersion": "2021-03-01",
-            "name": "[parameters('sites_cldocker_name')]",
+            "name": "[parameters('cloudio_app_service_name')]",
             "location": "West US 2",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_cloudioDev_a0c1_name'))]"
+                "[resourceId('Microsoft.Web/serverfarms', parameters('cloudio_app_service_plan'))]"
             ],
             "kind": "app,linux,container",
             "properties": {
                 "enabled": true,
                 "hostNameSslStates": [
                     {
-                        "name": "[concat(parameters('sites_cldocker_name'), '.azurewebsites.net')]",
+                        "name": "[concat(parameters('cloudio_app_service_name'), '.azurewebsites.net')]",
                         "sslState": "Disabled",
                         "hostType": "Standard"
                     },
                     {
-                        "name": "[concat(parameters('sites_cldocker_name'), '.scm.azurewebsites.net')]",
+                        "name": "[concat(parameters('cloudio_app_service_name'), '.scm.azurewebsites.net')]",
                         "sslState": "Disabled",
                         "hostType": "Repository"
                     }
                 ],
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_cloudioDev_a0c1_name'))]",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('cloudio_app_service_plan'))]",
                 "reserved": true,
                 "isXenon": false,
                 "hyperV": false,
@@ -365,10 +378,10 @@
         {
             "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
             "apiVersion": "2021-03-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/ftp')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/ftp')]",
             "location": "West US 2",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ],
             "properties": {
                 "allow": true
@@ -377,10 +390,10 @@
         {
             "type": "Microsoft.Web/sites/basicPublishingCredentialsPolicies",
             "apiVersion": "2021-03-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/scm')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/scm')]",
             "location": "West US 2",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ],
             "properties": {
                 "allow": true
@@ -389,10 +402,10 @@
         {
             "type": "Microsoft.Web/sites/config",
             "apiVersion": "2021-03-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/web')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/web')]",
             "location": "West US 2",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ],
             "properties": {
                 "numberOfWorkers": 1,
@@ -469,10 +482,10 @@
         {
             "type": "Microsoft.Web/sites/hostNameBindings",
             "apiVersion": "2021-03-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/', parameters('sites_cldocker_name'), '.azurewebsites.net')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/', parameters('cloudio_app_service_name'), '.azurewebsites.net')]",
             "location": "West US 2",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ],
             "properties": {
                 "siteName": "cldocker",
@@ -482,1649 +495,1649 @@
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-08T10_50_08_9600980')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-08T10_50_08_9600980')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-08T16_50_09_0056524')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-08T16_50_09_0056524')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-09T01_50_09_1871405')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-09T01_50_09_1871405')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-09T10_50_09_3318957')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-09T10_50_09_3318957')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-09T16_50_09_4548353')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-09T16_50_09_4548353')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-10T01_50_09_6459856')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-10T01_50_09_6459856')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-10T10_50_09_8397236')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-10T10_50_09_8397236')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-10T16_50_09_9526777')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-10T16_50_09_9526777')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-11T01_50_10_5492173')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-11T01_50_10_5492173')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-11T10_50_10_7265348')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-11T10_50_10_7265348')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-11T16_50_10_8612489')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-11T16_50_10_8612489')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-12T01_50_10_9937727')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-12T01_50_10_9937727')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-12T10_50_11_1583436')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-12T10_50_11_1583436')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-12T16_50_11_2745923')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-12T16_50_11_2745923')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-13T01_50_11_4383693')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-13T01_50_11_4383693')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-13T10_50_11_6029877')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-13T10_50_11_6029877')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-13T16_50_11_7213209')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-13T16_50_11_7213209')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-14T01_50_11_9023404')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-14T01_50_11_9023404')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-14T10_50_12_0954412')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-14T10_50_12_0954412')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-14T16_50_12_1899021')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-14T16_50_12_1899021')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-15T01_50_12_3922001')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-15T01_50_12_3922001')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-15T10_50_12_5653760')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-15T10_50_12_5653760')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-15T16_50_12_6931798')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-15T16_50_12_6931798')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-16T01_50_12_8828311')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-16T01_50_12_8828311')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-16T10_50_13_0622758')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-16T10_50_13_0622758')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-16T16_50_13_1811969')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-16T16_50_13_1811969')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-17T01_50_13_3770932')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-17T01_50_13_3770932')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-17T10_50_13_5664887')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-17T10_50_13_5664887')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-17T16_50_13_6635859')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-17T16_50_13_6635859')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-18T01_50_13_8173871')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-18T01_50_13_8173871')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-18T10_50_13_9967086')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-18T10_50_13_9967086')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-18T16_50_14_1170122')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-18T16_50_14_1170122')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-19T01_50_14_2864749')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-19T01_50_14_2864749')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-19T10_50_14_4906966')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-19T10_50_14_4906966')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-19T16_50_14_6158553')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-19T16_50_14_6158553')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-20T01_50_14_8233598')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-20T01_50_14_8233598')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-20T10_50_14_9961755')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-20T10_50_14_9961755')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-20T16_50_15_1331385')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-20T16_50_15_1331385')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-21T01_50_15_2509803')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-21T01_50_15_2509803')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-21T10_50_15_4103463')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-21T10_50_15_4103463')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-21T16_50_15_5182529')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-21T16_50_15_5182529')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-22T01_50_15_6879829')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-22T01_50_15_6879829')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-22T10_50_15_8463654')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-22T10_50_15_8463654')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-22T16_50_15_9503300')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-22T16_50_15_9503300')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-23T01_50_16_1890411')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-23T01_50_16_1890411')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-23T10_50_16_3205959')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-23T10_50_16_3205959')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-23T16_50_16_4310508')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-23T16_50_16_4310508')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-23T22_50_16_5536345')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-23T22_50_16_5536345')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-24T01_50_16_6588472')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-24T01_50_16_6588472')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-24T10_50_16_8024967')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-24T10_50_16_8024967')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-24T13_50_16_8664085')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-24T13_50_16_8664085')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-24T16_50_16_9501249')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-24T16_50_16_9501249')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-24T19_50_17_0051162')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-24T19_50_17_0051162')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-24T22_50_17_0552218')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-24T22_50_17_0552218')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-25T01_50_17_1069088')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-25T01_50_17_1069088')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-25T10_50_17_3037927')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-25T10_50_17_3037927')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-25T13_50_17_3517427')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-25T13_50_17_3517427')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-25T16_50_17_4049512')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-25T16_50_17_4049512')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-25T19_50_17_4548584')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-25T19_50_17_4548584')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-25T22_50_17_5077616')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-25T22_50_17_5077616')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-26T01_50_17_5636601')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-26T01_50_17_5636601')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-26T10_50_17_7249275')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-26T10_50_17_7249275')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-26T13_50_17_8052172')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-26T13_50_17_8052172')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-26T16_50_17_8400620')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-26T16_50_17_8400620')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-26T19_50_17_8918046')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-26T19_50_17_8918046')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-26T22_50_17_9504354')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-26T22_50_17_9504354')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-27T01_50_17_9859186')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-27T01_50_17_9859186')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-27T10_50_18_1369014')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-27T10_50_18_1369014')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-27T13_50_18_2206279')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-27T13_50_18_2206279')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-27T16_50_18_2975066')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-27T16_50_18_2975066')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-27T19_50_18_3266407')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-27T19_50_18_3266407')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-27T22_50_18_3845952')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-27T22_50_18_3845952')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-28T01_50_18_4472538')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-28T01_50_18_4472538')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-28T10_50_18_6428620')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-28T10_50_18_6428620')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-28T13_50_18_7086380')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-28T13_50_18_7086380')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-28T16_50_18_7325237')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-28T16_50_18_7325237')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-28T19_50_18_8128616')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-28T19_50_18_8128616')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-28T22_50_18_8257355')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-28T22_50_18_8257355')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-29T01_50_18_8876204')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-29T01_50_18_8876204')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-29T10_50_19_0434953')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-29T10_50_19_0434953')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-29T13_50_19_1267200')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-29T13_50_19_1267200')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-29T16_50_19_7990095')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-29T16_50_19_7990095')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-29T19_50_19_2501814')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-29T19_50_19_2501814')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-29T22_50_19_3014876')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-29T22_50_19_3014876')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-30T01_50_19_4242230')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-30T01_50_19_4242230')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-30T10_50_19_5673550')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-30T10_50_19_5673550')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-30T13_50_19_6412770')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-30T13_50_19_6412770')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-30T16_50_19_7194494')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-30T16_50_19_7194494')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-30T19_50_19_7686941')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-30T19_50_19_7686941')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-30T22_50_19_8234409')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-30T22_50_19_8234409')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-31T01_50_19_8992742')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-31T01_50_19_8992742')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-31T10_50_20_1608969')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-31T10_50_20_1608969')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-31T13_50_20_2146128')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-31T13_50_20_2146128')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-31T16_50_20_3041926')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-31T16_50_20_3041926')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-31T19_50_20_3366063')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-31T19_50_20_3366063')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-05-31T22_50_20_4133724')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-05-31T22_50_20_4133724')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-01T01_50_20_4689130')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-01T01_50_20_4689130')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-01T10_50_20_6171984')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-01T10_50_20_6171984')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-01T13_50_20_6564297')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-01T13_50_20_6564297')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-01T16_50_20_7173815')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-01T16_50_20_7173815')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-01T19_50_20_7715508')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-01T19_50_20_7715508')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-01T22_50_20_8174319')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-01T22_50_20_8174319')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-02T01_50_20_8705539')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-02T01_50_20_8705539')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-02T10_50_21_0620426')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-02T10_50_21_0620426')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-02T13_50_21_1341623')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-02T13_50_21_1341623')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-02T16_50_21_1876829')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-02T16_50_21_1876829')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-02T19_50_21_2419308')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-02T19_50_21_2419308')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-02T22_50_21_2861079')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-02T22_50_21_2861079')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T01_50_21_3434174')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T01_50_21_3434174')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T06_50_21_4429456')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T06_50_21_4429456')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T07_50_21_4569623')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T07_50_21_4569623')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T08_50_21_4747855')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T08_50_21_4747855')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T09_50_21_4916088')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T09_50_21_4916088')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T10_50_21_5212487')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T10_50_21_5212487')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T11_50_21_5439613')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T11_50_21_5439613')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T12_50_21_5576108')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T12_50_21_5576108')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T13_50_21_5713559')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T13_50_21_5713559')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T14_50_21_5882510')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T14_50_21_5882510')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T15_50_21_6100421')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T15_50_21_6100421')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T16_50_21_6348984')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T16_50_21_6348984')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T17_50_21_6466394')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T17_50_21_6466394')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T18_50_21_6724746')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T18_50_21_6724746')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T19_50_21_7082740')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T19_50_21_7082740')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T20_50_21_7311254')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T20_50_21_7311254')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T21_50_21_7468559')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T21_50_21_7468559')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T22_50_21_7707390')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T22_50_21_7707390')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-03T23_50_21_7794808')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-03T23_50_21_7794808')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T00_50_21_8020623')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T00_50_21_8020623')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T01_50_21_8180544')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T01_50_21_8180544')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T02_50_21_8338870')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T02_50_21_8338870')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T03_50_21_8533012')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T03_50_21_8533012')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T04_50_21_8726553')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T04_50_21_8726553')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T05_50_21_8994722')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T05_50_21_8994722')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T06_50_21_9239876')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T06_50_21_9239876')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T07_50_21_9681032')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T07_50_21_9681032')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T08_50_21_9919293')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T08_50_21_9919293')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T09_50_21_9967925')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T09_50_21_9967925')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T10_50_22_0186336')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T10_50_22_0186336')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T11_50_22_0363200')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T11_50_22_0363200')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T12_50_22_0503249')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T12_50_22_0503249')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T13_50_22_0709392')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T13_50_22_0709392')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T14_50_22_1020414')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T14_50_22_1020414')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T15_50_22_0995928')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T15_50_22_0995928')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T16_50_22_1237539')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T16_50_22_1237539')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T17_50_22_1293034')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T17_50_22_1293034')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T18_50_22_1455583')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T18_50_22_1455583')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T19_50_22_1999734')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T19_50_22_1999734')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T20_50_22_1912729')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T20_50_22_1912729')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T21_50_22_2176694')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T21_50_22_2176694')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T22_50_22_2289316')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T22_50_22_2289316')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-04T23_50_22_2381091')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-04T23_50_22_2381091')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T00_50_22_2763033')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T00_50_22_2763033')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T01_50_22_2946775')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T01_50_22_2946775')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T02_50_22_3258866')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T02_50_22_3258866')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T03_50_23_3459460')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T03_50_23_3459460')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T04_50_22_3685181')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T04_50_22_3685181')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T05_50_22_3879369')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T05_50_22_3879369')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T06_50_22_4043416')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T06_50_22_4043416')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T07_50_22_4286912')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T07_50_22_4286912')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T08_50_22_4608445')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T08_50_22_4608445')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T09_50_22_4785953')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T09_50_22_4785953')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T10_50_22_5145280')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T10_50_22_5145280')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T11_50_22_5381123')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T11_50_22_5381123')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T12_50_22_5561283')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T12_50_22_5561283')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T13_50_22_5727920')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T13_50_22_5727920')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T14_50_22_5947541')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T14_50_22_5947541')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T15_50_22_6165165')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T15_50_22_6165165')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T16_50_22_6375048')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T16_50_22_6375048')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T17_50_22_6634130')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T17_50_22_6634130')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T18_50_22_6723009')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T18_50_22_6723009')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T19_50_22_6921783')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T19_50_22_6921783')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T20_50_22_7089149')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T20_50_22_7089149')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T21_50_22_7329477')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T21_50_22_7329477')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T22_50_22_7607123')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T22_50_22_7607123')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-05T23_50_22_7664783')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-05T23_50_22_7664783')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T00_50_22_7792284')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T00_50_22_7792284')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T01_50_22_8241373')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T01_50_22_8241373')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T02_50_22_8239137')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T02_50_22_8239137')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T03_50_22_8498316')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T03_50_22_8498316')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T04_50_22_8815602')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T04_50_22_8815602')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T05_50_22_9114469')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T05_50_22_9114469')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T06_50_22_9352287')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T06_50_22_9352287')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T07_50_22_9621150')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T07_50_22_9621150')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T08_50_22_9768475')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T08_50_22_9768475')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T09_50_23_0087068')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T09_50_23_0087068')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T10_50_23_0443686')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T10_50_23_0443686')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T11_50_23_0511990')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T11_50_23_0511990')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T12_50_23_0607833')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T12_50_23_0607833')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T13_50_23_0917398')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T13_50_23_0917398')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T14_50_23_1403114')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T14_50_23_1403114')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T15_50_23_1251736')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T15_50_23_1251736')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T16_50_23_1417881')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T16_50_23_1417881')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T17_50_23_1687336')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T17_50_23_1687336')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T18_50_23_1904104')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T18_50_23_1904104')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T19_50_23_2191572')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T19_50_23_2191572')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T20_50_23_2399680')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T20_50_23_2399680')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T21_50_23_2697052')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T21_50_23_2697052')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T22_50_23_2673693')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T22_50_23_2673693')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-06T23_50_23_2792454')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-06T23_50_23_2792454')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-07T00_50_23_2987980')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-07T00_50_23_2987980')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-07T01_50_23_3126401')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-07T01_50_23_3126401')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-07T02_50_23_3373457')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-07T02_50_23_3373457')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-07T03_50_23_4080555')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-07T03_50_23_4080555')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-07T04_50_23_3739297')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-07T04_50_23_3739297')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-07T05_50_23_3876408')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-07T05_50_23_3876408')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         },
         {
             "type": "Microsoft.Web/sites/snapshots",
             "apiVersion": "2015-08-01",
-            "name": "[concat(parameters('sites_cldocker_name'), '/2022-06-07T06_50_23_4043712')]",
+            "name": "[concat(parameters('cloudio_app_service_name'), '/2022-06-07T06_50_23_4043712')]",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', parameters('sites_cldocker_name'))]"
+                "[resourceId('Microsoft.Web/sites', parameters('cloudio_app_service_name'))]"
             ]
         }
     ]
